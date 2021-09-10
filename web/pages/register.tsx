@@ -4,16 +4,37 @@ import { Input } from '@chakra-ui/input';
 import { Container } from '@chakra-ui/layout';
 import { Form, Formik } from 'formik';
 import React, { ReactElement } from 'react';
+import { useMutation } from 'urql';
 import InputField from '../components/InputField';
 
-interface Props {}
+interface RegisterPageProps {}
 
-function Register({}: Props): ReactElement {
+const REGISTER_MUTATION = `
+mutation Register($username: String!, $password: String!) {
+  register(options: { username: $username, password: $password}) {
+    errors {
+      field
+      message
+    }
+    user {
+      id
+      username
+      createdAt
+      updatedAt
+    }
+  }
+}
+`;
+
+function RegisterPage({}: RegisterPageProps): ReactElement {
+  const [_, register] = useMutation(REGISTER_MUTATION);
   return (
     <Container>
       <Formik
         initialValues={{ username: '', password: '' }}
-        onSubmit={(values) => console.log(values)}
+        onSubmit={(values) => {
+          return register(values);
+        }}
       >
         {({ isSubmitting }) => (
           <Form>
@@ -38,4 +59,4 @@ function Register({}: Props): ReactElement {
   );
 }
 
-export default Register;
+export default RegisterPage;
