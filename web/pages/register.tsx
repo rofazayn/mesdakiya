@@ -1,7 +1,5 @@
 import { Button } from '@chakra-ui/button';
 import { useRouter } from 'next/router';
-import { FormControl, FormLabel } from '@chakra-ui/form-control';
-import { Input } from '@chakra-ui/input';
 import { Container } from '@chakra-ui/layout';
 import { Form, Formik } from 'formik';
 import React, { ReactElement } from 'react';
