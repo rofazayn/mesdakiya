@@ -1,4 +1,5 @@
 import { Button } from '@chakra-ui/button';
+import { useRouter } from 'next/router';
 import { FormControl, FormLabel } from '@chakra-ui/form-control';
 import { Input } from '@chakra-ui/input';
 import { Container } from '@chakra-ui/layout';
@@ -12,6 +13,7 @@ import registerValidationSchema from '../validation/register';
 interface RegisterPageProps {}
 
 function RegisterPage({}: RegisterPageProps): ReactElement {
+  const router = useRouter();
   const [_, register] = useRegisterMutation();
   return (
     <Container>
@@ -24,6 +26,8 @@ function RegisterPage({}: RegisterPageProps): ReactElement {
           const response = await register(values);
           if (response.data?.register.errors) {
             setErrors(toErrorMap(response.data.register.errors));
+          } else if (response.data?.register.user) {
+            router.push('/');
           }
         }}
       >
