@@ -20,6 +20,7 @@
     "@types/express-session": "^1.17.4",
     "@types/node": "^16.7.10",
     "@types/redis": "^2.8.32",
+    "@types/yup": "^0.29.13",
     "nodemon": "^2.0.12",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.2"
@@ -39,7 +40,8 @@
     "pg": "^8.7.1",
     "redis": "^3.1.2",
     "reflect-metadata": "^0.1.13",
-    "type-graphql": "^1.1.1"
+    "type-graphql": "^1.1.1",
+    "yup": "^0.32.9"
   },
   "mikro-orm": {
     "useTsNode": true,
