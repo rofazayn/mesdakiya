@@ -18,6 +18,8 @@ function RegisterPage({}: RegisterPageProps): ReactElement {
       <Formik
         initialValues={{ username: '', password: '' }}
         validationSchema={registerValidationSchema}
+        validateOnChange={false}
+        validateOnBlur={false}
         onSubmit={async (values, { setErrors }) => {
           const response = await register(values);
           if (response.data?.register.errors) {
