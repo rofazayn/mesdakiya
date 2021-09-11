@@ -7,6 +7,7 @@ import React, { ReactElement } from 'react';
 import InputField from '../components/InputField';
 import { useRegisterMutation } from '../generated/graphql';
 import { toErrorMap } from '../utils/toErrorMap';
+import registerValidationSchema from '../validation/register';
 
 interface RegisterPageProps {}
 
@@ -16,6 +17,7 @@ function RegisterPage({}: RegisterPageProps): ReactElement {
     <Container>
       <Formik
         initialValues={{ username: '', password: '' }}
+        validationSchema={registerValidationSchema}
         onSubmit={async (values, { setErrors }) => {
           const response = await register(values);
           if (response.data?.register.errors) {
