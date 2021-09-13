@@ -2,14 +2,14 @@ import type { AppProps } from 'next/app';
 import { ChakraProvider } from '@chakra-ui/react';
 import { Provider, createClient, dedupExchange, fetchExchange } from 'urql';
 import { Cache, cacheExchange, QueryInput } from '@urql/exchange-graphcache';
-import Navbar from '../components/Navbar';
+import Navbar from '../src/components/Navbar';
 import {
   LoginMutation,
   LogoutMutation,
   MeDocument,
   MeQuery,
   RegisterMutation,
-} from '../generated/graphql';
+} from '../src/generated/graphql';
 
 function updateQuery<Result, Query>(
   cache: Cache,
