@@ -3,10 +3,10 @@ import { useRouter } from 'next/router';
 import { Container } from '@chakra-ui/layout';
 import { Form, Formik } from 'formik';
 import React, { ReactElement } from 'react';
-import InputField from '../components/InputField';
-import { useRegisterMutation } from '../generated/graphql';
-import { toErrorMap } from '../utils/toErrorMap';
-import registerValidationSchema from '../validation/register';
+import InputField from '../src/components/InputField';
+import { useRegisterMutation } from '../src/generated/graphql';
+import { toErrorMap } from '../src/utils/toErrorMap';
+import registerValidationSchema from '../src/validation/register';
 
 interface RegisterPageProps {}
 
