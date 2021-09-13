@@ -1,6 +1,7 @@
 import type { AppProps } from 'next/app';
 import { ChakraProvider } from '@chakra-ui/react';
 import { Provider, createClient } from 'urql';
+import Navbar from '../components/Navbar';
 
 const client = createClient({
   url: 'http://localhost:4000/graphql',
@@ -13,6 +14,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <Provider value={client}>
       <ChakraProvider>
+        <Navbar />
         <Component {...pageProps} />
       </ChakraProvider>
     </Provider>
