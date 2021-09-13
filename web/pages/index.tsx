@@ -3,8 +3,8 @@ import type { NextPage } from 'next';
 
 const Home: NextPage = () => {
   return (
-    <Container width='lg'>
-      <Heading py={4}>
+    <Container maxW='container.sm'>
+      <Heading py={3}>
         {/* eslint-disable-next-line react/no-unescaped-entities */}
         Welcome to Mesdakiya, where people choose what's authentic and what's
         not.
