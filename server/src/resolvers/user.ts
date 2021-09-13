@@ -9,8 +9,10 @@ import {
   InputType,
   Mutation,
   ObjectType,
+  Query,
   Resolver,
 } from 'type-graphql';
+import { COOKIE_NAME } from '../constants';
 
 @ObjectType()
 class UserResponse {
@@ -41,6 +43,17 @@ class UsernamePasswordInput {
 
 @Resolver()
 export class UserResolver {
+  @Query(() => User, { nullable: true })
+  async me(@Ctx() { em, req }: MyContext) {
+    // you are not logged in
+    if (!req.session.userId) {
+      return null;
+    }
+
+    const user = await em.findOne(User, { id: req.session.userId });
+    return user;
+  }
+
   @Mutation(() => UserResponse)
   async register(
     @Arg('options') options: UsernamePasswordInput,
@@ -53,7 +66,7 @@ export class UserResolver {
 
     // validate inputs
     try {
-      await registerValidationSchema.validate(options).then();
+      await registerValidationSchema.validate(options);
     } catch (error) {
       if (error instanceof yup.ValidationError) {
         return {
@@ -91,6 +104,23 @@ export class UserResolver {
     @Arg('options') options: UsernamePasswordInput,
     @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
+    const loginValidationSchema = yup.object().shape({
+      username: yup.string().required().min(4).max(20),
+      password: yup.string().required().min(6).max(40),
+    });
+    // validate inputs
+    try {
+      await loginValidationSchema.validate(options);
+    } catch (error) {
+      if (error instanceof yup.ValidationError) {
+        return {
+          errors: [{ field: error.path as string, message: error.message }],
+        };
+      } else {
+        throw error;
+      }
+    }
+
     const user = await em.findOne(User, { username: options.username });
     if (!user) {
       return {
@@ -115,5 +145,20 @@ export class UserResolver {
     req.session.userId = user.id;
 
     return { user };
+  }
+
+  @Mutation(() => Boolean)
+  logout(@Ctx() { req, res }: MyContext) {
+    return new Promise((resolve) => {
+      req.session.destroy((err) => {
+        res.clearCookie(COOKIE_NAME);
+        if (err) {
+          console.log(err);
+          resolve(false);
+          return;
+        }
+        resolve(true);
+      });
+    });
   }
 }

@@ -5,6 +5,7 @@ import { Cache, cacheExchange, QueryInput } from '@urql/exchange-graphcache';
 import Navbar from '../components/Navbar';
 import {
   LoginMutation,
+  LogoutMutation,
   MeDocument,
   MeQuery,
   RegisterMutation,
@@ -58,6 +59,16 @@ const client = createClient({
                     me: result.register.user,
                   };
                 }
+              }
+            );
+          },
+          logout: (_result: LogoutMutation, args, cache, info) => {
+            updateQuery<LoginMutation, MeQuery>(
+              cache,
+              { query: MeDocument },
+              _result,
+              () => {
+                return { me: null };
               }
             );
           },
