@@ -95,6 +95,7 @@ export type UsernamePasswordInput = {
   username: Scalars['String'];
 };
 
+
 export type RegularUserFragment = { __typename?: 'User', id: number, username: string, createdAt: string, updatedAt: string };
 
 export type LoginMutationVariables = Exact<{
@@ -139,6 +140,7 @@ export const LoginDocument = gql`
   }
 }
     ${RegularUserFragmentDoc}`;
+
 
 export function useLoginMutation() {
   return Urql.useMutation<LoginMutation, LoginMutationVariables>(LoginDocument);
