@@ -7,10 +7,12 @@ import InputField from '../src/components/InputField';
 import { useRegisterMutation } from '../src/generated/graphql';
 import { toErrorMap } from '../src/utils/toErrorMap';
 import registerValidationSchema from '../src/validation/register';
+import { withUrqlClient } from 'next-urql';
+import { createURQLCLient } from '../src/utils/createURQLClient';
 
 interface RegisterPageProps {}
 
-function RegisterPage({}: RegisterPageProps): ReactElement {
+const RegisterPage = ({}: RegisterPageProps) => {
   const router = useRouter();
   const [_, register] = useRegisterMutation();
   return (
@@ -50,6 +52,6 @@ function RegisterPage({}: RegisterPageProps): ReactElement {
       </Formik>
     </Container>
   );
-}
+};
 
-export default RegisterPage;
+export default withUrqlClient(createURQLCLient, { ssr: false })(RegisterPage);
