@@ -1,7 +1,11 @@
-import { Container, Heading, Text } from '@chakra-ui/layout';
+import { Container, Heading } from '@chakra-ui/layout';
 import type { NextPage } from 'next';
+import { withUrqlClient } from 'next-urql';
+import { usePostsQuery } from '../src/generated/graphql';
+import { createURQLCLient } from '../src/utils/createURQLClient';
 
 const Home: NextPage = () => {
+  const [{ data }] = usePostsQuery();
   return (
     <Container maxW='container.sm'>
       <Heading py={3}>
@@ -9,19 +13,11 @@ const Home: NextPage = () => {
         Welcome to Mesdakiya, where people choose what's authentic and what's
         not.
       </Heading>
-      <Text>
-        Lorem ipsum dolor, sit amet consectetur adipisicing elit. Placeat culpa
-        a, quas necessitatibus temporibus sed, enim illo dolorum vero, dolore
-        quod esse praesentium? Illum quidem reprehenderit aperiam maiores
-        consequuntur culpa tempora voluptatibus architecto quia tenetur quaerat
-        repellat omnis explicabo molestiae consectetur optio, ex dolorum? A
-        expedita ex iure ut, nulla eum, quibusdam error autem minus placeat
-        ratione ea debitis repellat eos est! Quasi sit, consectetur, rem eius
-        mollitia, sequi fugit dignissimos excepturi itaque illum facilis minima
-        temporibus tempore alias dolores.
-      </Text>
+      {!data
+        ? 'Loading...'
+        : data.posts.map((post) => <div key={post.id}>{post.title}</div>)}
     </Container>
   );
 };
 
-export default Home;
+export default withUrqlClient(createURQLCLient, { ssr: true })(Home);
