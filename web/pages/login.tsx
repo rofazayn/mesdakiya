@@ -7,10 +7,12 @@ import InputField from '../src/components/InputField';
 import { useLoginMutation } from '../src/generated/graphql';
 import { toErrorMap } from '../src/utils/toErrorMap';
 import loginValidationSchema from '../src/validation/login';
+import { withUrqlClient } from 'next-urql';
+import { createURQLCLient } from '../src/utils/createURQLClient';
 
 interface LoginProps {}
 
-function LoginPage({}: LoginProps): ReactElement {
+const LoginPage = ({}: LoginProps) => {
   const router = useRouter();
   const [_, login] = useLoginMutation();
   return (
@@ -50,6 +52,6 @@ function LoginPage({}: LoginProps): ReactElement {
       </Formik>
     </Container>
   );
-}
+};
 
-export default LoginPage;
+export default withUrqlClient(createURQLCLient, { ssr: false })(LoginPage);
