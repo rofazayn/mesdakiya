@@ -13,6 +13,10 @@ import {
   Resolver,
 } from 'type-graphql';
 import { COOKIE_NAME } from '../constants';
+import {
+  loginValidationSchema,
+  registerValidationSchema,
+} from '../utils/validateUserCredentials';
 
 @ObjectType()
 class UserResponse {
@@ -30,6 +34,18 @@ class FieldError {
 
   @Field()
   message: string;
+}
+
+@InputType()
+class UserCredentials {
+  @Field()
+  username: string;
+
+  @Field()
+  email: string;
+
+  @Field()
+  password: string;
 }
 
 @InputType()
@@ -56,14 +72,9 @@ export class UserResolver {
 
   @Mutation(() => UserResponse)
   async register(
-    @Arg('options') options: UsernamePasswordInput,
+    @Arg('options') options: UserCredentials,
     @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
-    const registerValidationSchema = yup.object().shape({
-      username: yup.string().required().min(4).max(20),
-      password: yup.string().required().min(6).max(40),
-    });
-
     // validate inputs
     try {
       await registerValidationSchema.validate(options);
@@ -80,6 +91,7 @@ export class UserResolver {
     const hashedPassword = await argon2.hash(options.password);
     const user = em.create(User, {
       username: options.username,
+      email: options.email,
       password: hashedPassword,
     });
 
@@ -89,7 +101,9 @@ export class UserResolver {
     } catch (error) {
       if (error.code === '23505') {
         return {
-          errors: [{ field: 'username', message: 'username already in use.' }],
+          errors: [
+            { field: 'global', message: 'username or email already in use' },
+          ],
         };
       }
     }
@@ -104,10 +118,6 @@ export class UserResolver {
     @Arg('options') options: UsernamePasswordInput,
     @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
-    const loginValidationSchema = yup.object().shape({
-      username: yup.string().required().min(4).max(20),
-      password: yup.string().required().min(6).max(40),
-    });
     // validate inputs
     try {
       await loginValidationSchema.validate(options);
@@ -121,12 +131,16 @@ export class UserResolver {
       }
     }
 
-    const user = await em.findOne(User, { username: options.username });
+    let user = null;
+    if (options.username.includes('@')) {
+      user = await em.findOne(User, { email: options.username });
+    } else {
+      user = await em.findOne(User, { username: options.username });
+    }
+
     if (!user) {
       return {
-        errors: [
-          { field: 'username', message: 'Incorrect login credentials.' },
-        ],
+        errors: [{ field: 'global', message: 'incorrect login credentials' }],
       };
     }
 
@@ -135,8 +149,8 @@ export class UserResolver {
       return {
         errors: [
           {
-            field: 'password',
-            message: 'Incorrect login credentials.',
+            field: 'global',
+            message: 'incorrect login credentials',
           },
         ],
       };
