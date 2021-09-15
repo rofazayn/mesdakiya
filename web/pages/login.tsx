@@ -1,8 +1,8 @@
 import { Button } from '@chakra-ui/button';
 import { useRouter } from 'next/router';
-import { Container } from '@chakra-ui/layout';
+import { Box, Container } from '@chakra-ui/layout';
 import { Form, Formik } from 'formik';
-import React, { ReactElement } from 'react';
+import React, { ReactElement, useState } from 'react';
 import InputField from '../src/components/InputField';
 import { useLoginMutation } from '../src/generated/graphql';
 import { toErrorMap } from '../src/utils/toErrorMap';
@@ -14,6 +14,7 @@ interface LoginProps {}
 
 const LoginPage = ({}: LoginProps) => {
   const router = useRouter();
+  const [globalError, setGlobalError] = useState('');
   const [_, login] = useLoginMutation();
   return (
     <Container>
@@ -25,6 +26,9 @@ const LoginPage = ({}: LoginProps) => {
         onSubmit={async (values, { setErrors }) => {
           const response = await login(values);
           if (response.data?.login.errors) {
+            if (response.data.login.errors[0].field === 'global') {
+              setGlobalError(response.data.login.errors[0].message);
+            }
             setErrors(toErrorMap(response.data.login.errors));
           } else if (response.data?.login.user) {
             router.push('/');
@@ -44,6 +48,18 @@ const LoginPage = ({}: LoginProps) => {
               placeholder='Password'
               type='password'
             />
+            {!globalError ? null : (
+              <Box
+                py={3}
+                px={4}
+                mb={3}
+                bgColor='red.50'
+                color='red.500'
+                borderRadius='lg'
+              >
+                {globalError}
+              </Box>
+            )}
             <Button colorScheme='teal' isLoading={isSubmitting} type='submit'>
               Login
             </Button>
