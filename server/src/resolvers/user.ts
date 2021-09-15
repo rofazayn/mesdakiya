@@ -1,61 +1,18 @@
 import argon2 from 'argon2';
-import { User } from '../entities/User';
-import { MyContext } from '../types';
+import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
 import * as yup from 'yup';
-import {
-  Arg,
-  Ctx,
-  Field,
-  InputType,
-  Mutation,
-  ObjectType,
-  Query,
-  Resolver,
-} from 'type-graphql';
 import { COOKIE_NAME } from '../constants';
+import { User } from '../entities/User';
+import {
+  MyContext,
+  UserCredentials,
+  UsernamePasswordInput,
+  UserResponse,
+} from '../types';
 import {
   loginValidationSchema,
   registerValidationSchema,
 } from '../utils/validateUserCredentials';
-
-@ObjectType()
-class UserResponse {
-  @Field(() => [FieldError], { nullable: true })
-  errors?: FieldError[];
-
-  @Field(() => User, { nullable: true })
-  user?: User;
-}
-
-@ObjectType()
-class FieldError {
-  @Field()
-  field: string;
-
-  @Field()
-  message: string;
-}
-
-@InputType()
-class UserCredentials {
-  @Field()
-  username: string;
-
-  @Field()
-  email: string;
-
-  @Field()
-  password: string;
-}
-
-@InputType()
-class UsernamePasswordInput {
-  @Field()
-  username: string;
-
-  @Field()
-  password: string;
-}
 
 @Resolver()
 export class UserResolver {
