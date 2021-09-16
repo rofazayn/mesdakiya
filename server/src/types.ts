@@ -2,6 +2,7 @@ import { EntityManager, IDatabaseDriver, Connection } from '@mikro-orm/core';
 import { Request, Response } from 'express';
 import { User } from './entities/User';
 import { Field, InputType, ObjectType } from 'type-graphql';
+import { Redis } from 'ioredis';
 
 declare module 'express-session' {
   export interface SessionData {
@@ -13,6 +14,7 @@ export type MyContext = {
   em: EntityManager<IDatabaseDriver<Connection>>;
   req: Request;
   res: Response;
+  redis: Redis;
 };
 
 @ObjectType()

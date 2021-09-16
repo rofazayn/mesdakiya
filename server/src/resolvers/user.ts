@@ -1,5 +1,7 @@
 import argon2 from 'argon2';
+import { sendForgottenPasswordEmail } from '../utils/sendEmail';
 import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
+import { v4 } from 'uuid';
 import * as yup from 'yup';
 import { COOKIE_NAME } from '../constants';
 import { User } from '../entities/User';
@@ -25,6 +27,25 @@ export class UserResolver {
 
     const user = await em.findOne(User, { id: req.session.userId });
     return user;
+  }
+
+  @Mutation(() => Boolean)
+  async forgotPassword(
+    @Arg('email') email: string,
+    @Ctx() { em, redis }: MyContext
+  ) {
+    const user = await em.findOne(User, { email: email });
+    if (!user) {
+      return true;
+    }
+
+    const token = v4();
+    redis.set(`forgot_password-${token}`, user.id);
+    const resetPasswordEmailHtml = `<a href='http://localhost:3000/change-password/${token}'>Click here</a> to reset your password.`;
+    console.log(token);
+    sendForgottenPasswordEmail(email, resetPasswordEmailHtml);
+
+    return true;
   }
 
   @Mutation(() => UserResponse)

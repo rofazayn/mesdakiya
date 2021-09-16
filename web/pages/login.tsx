@@ -1,15 +1,15 @@
 import { Button } from '@chakra-ui/button';
-import { useRouter } from 'next/router';
 import { Box, Container, Flex, Link } from '@chakra-ui/layout';
 import { Form, Formik } from 'formik';
-import React, { ReactElement, useState } from 'react';
+import { withUrqlClient } from 'next-urql';
+import NextLink from 'next/link';
+import { useRouter } from 'next/router';
+import React, { useState } from 'react';
 import InputField from '../src/components/InputField';
 import { useLoginMutation } from '../src/generated/graphql';
+import { createURQLCLient } from '../src/utils/createURQLClient';
 import { toErrorMap } from '../src/utils/toErrorMap';
 import loginValidationSchema from '../src/validation/login';
-import { withUrqlClient } from 'next-urql';
-import { createURQLCLient } from '../src/utils/createURQLClient';
-import NextLink from 'next/link';
 
 interface LoginProps {}
 
@@ -67,7 +67,7 @@ const LoginPage = ({}: LoginProps) => {
                 Login
               </Button>
               <NextLink href='/forgot-password'>
-                <Link>Forgot password</Link>
+                <Link>Forgot password?</Link>
               </NextLink>
             </Flex>
           </Form>
