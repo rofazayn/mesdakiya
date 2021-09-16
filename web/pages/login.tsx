@@ -1,6 +1,6 @@
 import { Button } from '@chakra-ui/button';
 import { useRouter } from 'next/router';
-import { Box, Container } from '@chakra-ui/layout';
+import { Box, Container, Flex, Link } from '@chakra-ui/layout';
 import { Form, Formik } from 'formik';
 import React, { ReactElement, useState } from 'react';
 import InputField from '../src/components/InputField';
@@ -9,6 +9,7 @@ import { toErrorMap } from '../src/utils/toErrorMap';
 import loginValidationSchema from '../src/validation/login';
 import { withUrqlClient } from 'next-urql';
 import { createURQLCLient } from '../src/utils/createURQLClient';
+import NextLink from 'next/link';
 
 interface LoginProps {}
 
@@ -17,7 +18,7 @@ const LoginPage = ({}: LoginProps) => {
   const [globalError, setGlobalError] = useState('');
   const [_, login] = useLoginMutation();
   return (
-    <Container>
+    <Container maxWidth='sm'>
       <Formik
         initialValues={{ username: '', password: '' }}
         validationSchema={loginValidationSchema}
@@ -60,9 +61,15 @@ const LoginPage = ({}: LoginProps) => {
                 {globalError}
               </Box>
             )}
-            <Button colorScheme='teal' isLoading={isSubmitting} type='submit'>
-              Login
-            </Button>
+
+            <Flex alignItems='center' justifyContent='space-between'>
+              <Button type='submit' me={4} isLoading={isSubmitting}>
+                Login
+              </Button>
+              <NextLink href='/forgot-password'>
+                <Link>Forgot password</Link>
+              </NextLink>
+            </Flex>
           </Form>
         )}
       </Formik>

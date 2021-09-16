@@ -17,7 +17,7 @@ const RegisterPage = ({}: RegisterPageProps) => {
   const [globalError, setGlobalError] = useState('');
   const [_, register] = useRegisterMutation();
   return (
-    <Container>
+    <Container maxWidth='sm'>
       <Formik
         initialValues={{ username: '', email: '', password: '' }}
         validationSchema={registerValidationSchema}
