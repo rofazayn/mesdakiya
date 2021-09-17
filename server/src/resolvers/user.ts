@@ -29,6 +29,45 @@ export class UserResolver {
     return user;
   }
 
+  @Mutation(() => UserResponse)
+  async changePassword(
+    @Arg('token') token: string,
+    @Arg('newPassword') newPassword: string,
+    @Ctx() { em, redis, req }: MyContext
+  ) {
+    // check if the token is valid
+    const userId = await redis.get(`forgot_password-${token}`);
+    if (!userId) {
+      return {
+        errors: [
+          {
+            field: 'global',
+            message: 'your recovery token is expired',
+          },
+        ],
+      };
+    }
+
+    const user = await em.findOne(User, { id: parseInt(userId) });
+    if (!user) {
+      return {
+        errors: [
+          {
+            field: 'global',
+            message: 'user no longer exists',
+          },
+        ],
+      };
+    }
+
+    const newHashedPassword = await argon2.hash(newPassword);
+    user.password = newHashedPassword;
+    await em.persistAndFlush(user);
+
+    req.session.userId = user.id;
+    return { user };
+  }
+
   @Mutation(() => Boolean)
   async forgotPassword(
     @Arg('email') email: string,
@@ -43,7 +82,11 @@ export class UserResolver {
     redis.set(`forgot_password-${token}`, user.id);
     const resetPasswordEmailHtml = `<a href='http://localhost:3000/change-password/${token}'>Click here</a> to reset your password.`;
     console.log(token);
-    sendForgottenPasswordEmail(email, resetPasswordEmailHtml);
+    try {
+      await sendForgottenPasswordEmail(email, resetPasswordEmailHtml);
+    } catch (error) {
+      return true;
+    }
 
     return true;
   }

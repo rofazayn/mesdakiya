@@ -30,7 +30,7 @@ const main = async () => {
       name: COOKIE_NAME,
       // store: new RedisStore({ client: redisClient, disableTouch: true }),
       store: new RedisStore({
-        client: redis.client as any,
+        client: redis as any,
         disableTouch: true,
       }),
       saveUninitialized: false,
