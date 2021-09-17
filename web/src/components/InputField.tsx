@@ -20,7 +20,7 @@ function InputField({
 }: InputFieldProps): ReactElement {
   const [field, { error }] = useField(props);
   return (
-    <FormControl isInvalid={!!error} id={field.name}>
+    <FormControl isInvalid={!!error} id={field.name} pb={3}>
       <FormLabel>{label}</FormLabel>
       <Input {...field} {...props} size={inputSize} />
       {error ? <FormErrorMessage>{error}</FormErrorMessage> : null}

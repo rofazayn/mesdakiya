@@ -6,6 +6,7 @@ import {
   MeDocument,
   RegisterMutation,
   LogoutMutation,
+  ChangePasswordMutation,
 } from '../generated/graphql';
 import { updateQuery } from './updateQuery';
 
@@ -19,6 +20,27 @@ export const createURQLCLient = (ssrExchange: any) => ({
     cacheExchange({
       updates: {
         Mutation: {
+          changePassword: (
+            _result: ChangePasswordMutation,
+            args,
+            cache,
+            info
+          ) => {
+            updateQuery<ChangePasswordMutation, MeQuery>(
+              cache,
+              { query: MeDocument },
+              _result,
+              (result, query) => {
+                if (result.changePassword.errors) {
+                  return query;
+                } else {
+                  return {
+                    me: result.changePassword.user,
+                  };
+                }
+              }
+            );
+          },
           login: (_result: LoginMutation, args, cache, info) => {
             updateQuery<LoginMutation, MeQuery>(
               cache,

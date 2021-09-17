@@ -1,45 +1,20 @@
 import argon2 from 'argon2';
-import { User } from '../entities/User';
-import { MyContext } from '../types';
+import { sendForgottenPasswordEmail } from '../utils/sendEmail';
+import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
+import { v4 } from 'uuid';
 import * as yup from 'yup';
-import {
-  Arg,
-  Ctx,
-  Field,
-  InputType,
-  Mutation,
-  ObjectType,
-  Query,
-  Resolver,
-} from 'type-graphql';
 import { COOKIE_NAME } from '../constants';
-
-@ObjectType()
-class UserResponse {
-  @Field(() => [FieldError], { nullable: true })
-  errors?: FieldError[];
-
-  @Field(() => User, { nullable: true })
-  user?: User;
-}
-
-@ObjectType()
-class FieldError {
-  @Field()
-  field: string;
-
-  @Field()
-  message: string;
-}
-
-@InputType()
-class UsernamePasswordInput {
-  @Field()
-  username: string;
-
-  @Field()
-  password: string;
-}
+import { User } from '../entities/User';
+import {
+  MyContext,
+  UserCredentials,
+  UsernamePasswordInput,
+  UserResponse,
+} from '../types';
+import {
+  loginValidationSchema,
+  registerValidationSchema,
+} from '../utils/validateUserCredentials';
 
 @Resolver()
 export class UserResolver {
@@ -55,15 +30,72 @@ export class UserResolver {
   }
 
   @Mutation(() => UserResponse)
+  async changePassword(
+    @Arg('token') token: string,
+    @Arg('newPassword') newPassword: string,
+    @Ctx() { em, redis, req }: MyContext
+  ) {
+    // check if the token is valid
+    const userId = await redis.get(`forgot_password-${token}`);
+    if (!userId) {
+      return {
+        errors: [
+          {
+            field: 'global',
+            message: 'your recovery token is expired',
+          },
+        ],
+      };
+    }
+
+    const user = await em.findOne(User, { id: parseInt(userId) });
+    if (!user) {
+      return {
+        errors: [
+          {
+            field: 'global',
+            message: 'user no longer exists',
+          },
+        ],
+      };
+    }
+
+    const newHashedPassword = await argon2.hash(newPassword);
+    user.password = newHashedPassword;
+    await em.persistAndFlush(user);
+
+    req.session.userId = user.id;
+    return { user };
+  }
+
+  @Mutation(() => Boolean)
+  async forgotPassword(
+    @Arg('email') email: string,
+    @Ctx() { em, redis }: MyContext
+  ) {
+    const user = await em.findOne(User, { email: email });
+    if (!user) {
+      return true;
+    }
+
+    const token = v4();
+    redis.set(`forgot_password-${token}`, user.id);
+    const resetPasswordEmailHtml = `<a href='http://localhost:3000/change-password/${token}'>Click here</a> to reset your password.`;
+    console.log(token);
+    try {
+      await sendForgottenPasswordEmail(email, resetPasswordEmailHtml);
+    } catch (error) {
+      return true;
+    }
+
+    return true;
+  }
+
+  @Mutation(() => UserResponse)
   async register(
-    @Arg('options') options: UsernamePasswordInput,
+    @Arg('options') options: UserCredentials,
     @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
-    const registerValidationSchema = yup.object().shape({
-      username: yup.string().required().min(4).max(20),
-      password: yup.string().required().min(6).max(40),
-    });
-
     // validate inputs
     try {
       await registerValidationSchema.validate(options);
@@ -80,6 +112,7 @@ export class UserResolver {
     const hashedPassword = await argon2.hash(options.password);
     const user = em.create(User, {
       username: options.username,
+      email: options.email,
       password: hashedPassword,
     });
 
@@ -89,7 +122,9 @@ export class UserResolver {
     } catch (error) {
       if (error.code === '23505') {
         return {
-          errors: [{ field: 'username', message: 'username already in use.' }],
+          errors: [
+            { field: 'global', message: 'username or email already in use' },
+          ],
         };
       }
     }
@@ -104,10 +139,6 @@ export class UserResolver {
     @Arg('options') options: UsernamePasswordInput,
     @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
-    const loginValidationSchema = yup.object().shape({
-      username: yup.string().required().min(4).max(20),
-      password: yup.string().required().min(6).max(40),
-    });
     // validate inputs
     try {
       await loginValidationSchema.validate(options);
@@ -121,12 +152,16 @@ export class UserResolver {
       }
     }
 
-    const user = await em.findOne(User, { username: options.username });
+    let user = null;
+    if (options.username.includes('@')) {
+      user = await em.findOne(User, { email: options.username });
+    } else {
+      user = await em.findOne(User, { username: options.username });
+    }
+
     if (!user) {
       return {
-        errors: [
-          { field: 'username', message: 'Incorrect login credentials.' },
-        ],
+        errors: [{ field: 'global', message: 'incorrect login credentials' }],
       };
     }
 
@@ -135,8 +170,8 @@ export class UserResolver {
       return {
         errors: [
           {
-            field: 'password',
-            message: 'Incorrect login credentials.',
+            field: 'global',
+            message: 'incorrect login credentials',
           },
         ],
       };
