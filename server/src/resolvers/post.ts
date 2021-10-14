@@ -1,5 +1,6 @@
 import { Post } from '../entities/Post';
 import { Arg, Int, Mutation, Query, Resolver } from 'type-graphql';
+import { getConnection } from 'typeorm';
 
 @Resolver()
 export class PostResolver {
@@ -14,9 +15,26 @@ export class PostResolver {
   }
 
   @Mutation(() => Post)
-  async createPost(@Arg('title', () => String) title: string): Promise<Post> {
-    const post = Post.create({ title });
-    await post.save();
+  async createPost(
+    @Arg('title', () => String) title: string
+  ): Promise<Post | undefined> {
+    let post;
+    try {
+      const result = await getConnection()
+        .createQueryBuilder()
+        .insert()
+        .into(Post)
+        .values({
+          title: title,
+        })
+        .returning('*')
+        .execute();
+      post = result.raw[0];
+    } catch (err) {
+      console.error('zbi', err);
+    }
+    console.log(post);
+
     return post;
   }
 
