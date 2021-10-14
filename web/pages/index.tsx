@@ -5,17 +5,18 @@ import { usePostsQuery } from '../src/generated/graphql';
 import { createURQLCLient } from '../src/utils/createURQLClient';
 
 const Home: NextPage = () => {
-  const [{ data }] = usePostsQuery();
+  const [{ data, fetching }] = usePostsQuery();
   return (
     <Container maxW='container.sm'>
       <Heading py={3}>
-        {/* eslint-disable-next-line react/no-unescaped-entities */}
-        Welcome to Mesdakiya, where people choose what's authentic and what's
-        not.
+        {`Welcome to Mesdakiya, where people choose what's authentic and what's
+        not.`}
       </Heading>
-      {!data
+      {fetching
         ? 'Loading...'
-        : data.posts.map((post) => <div key={post.id}>{post.title}</div>)}
+        : !fetching && data?.posts && data?.posts?.length === 0
+        ? 'No posts found.'
+        : data?.posts.map((post) => <div key={post.id}>{post.title}</div>)}
     </Container>
   );
 };

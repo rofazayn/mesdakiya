@@ -5,6 +5,7 @@ import React, { ReactElement, useState } from 'react';
 import InputField from '../src/components/InputField';
 import { useForgotPasswordMutation } from '../src/generated/graphql';
 import { createURQLCLient } from '../src/utils/createURQLClient';
+import forgotPasswordValidationSchema from '../src/validation/forgotPassword';
 
 interface ForgotPasswordPageProps {}
 
@@ -17,6 +18,7 @@ function ForgotPasswordPage({}: ForgotPasswordPageProps): ReactElement {
         initialValues={{ email: '' }}
         validateOnChange={false}
         validateOnBlur={false}
+        validationSchema={forgotPasswordValidationSchema}
         onSubmit={async (values, { setErrors }) => {
           await forgotPassword(values);
           setComplete(true);
